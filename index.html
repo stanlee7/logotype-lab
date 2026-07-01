@@ -21,17 +21,15 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="/" aria-label="LogoType Lab home">LogoType</a>
-      <nav class="tool-tabs" aria-label="Logo effects">
-        <button class="tab is-active" type="button" data-effect="type">Type</button>
-        <button class="tab" type="button" data-effect="blur">Blur</button>
-        <button class="tab" type="button" data-effect="pixel">Pixel</button>
-        <button class="tab" type="button" data-effect="slice">Slice</button>
-        <button class="tab" type="button" data-effect="line">Line</button>
-      </nav>
-      <div class="top-actions">
-        <button class="icon-button" type="button" id="randomize" aria-label="Randomize preset" title="Randomize preset">R</button>
-        <button class="export-button" type="button" id="exportPng">Export PNG</button>
+      <a class="brand" href="/" aria-label="LogoType Lab home">Type</a>
+      <div class="dropdown">
+        <select id="toolSelect" aria-label="Tools">
+          <option value="blur">Blur</option>
+          <option value="dither">Dither</option>
+          <option value="line">Line</option>
+          <option value="slice">Slice</option>
+          <option value="type" selected>Type</option>
+        </select>
       </div>
     </header>
 
@@ -46,26 +44,15 @@
           <input id="logoText" type="text" value="AURA" autocomplete="off" maxlength="18">
         </section>
 
-        <section class="panel-section two-col">
-          <div>
-            <label for="fontFamily">Font</label>
-            <select id="fontFamily">
-              <option value="Arial Black, Arial, sans-serif">Arial Black</option>
-              <option value="Impact, Haettenschweiler, sans-serif">Impact</option>
-              <option value="Georgia, serif">Georgia</option>
-              <option value="Trebuchet MS, Arial, sans-serif">Trebuchet</option>
-              <option value="Courier New, monospace">Courier</option>
-            </select>
-          </div>
-          <div>
-            <label for="canvasRatio">Frame</label>
-            <select id="canvasRatio">
-              <option value="16:10">Wide</option>
-              <option value="1:1">Square</option>
-              <option value="4:5">Poster</option>
-              <option value="2:1">Banner</option>
-            </select>
-          </div>
+        <section class="panel-section">
+          <label for="fontFamily">Font</label>
+          <select id="fontFamily">
+            <option value="Arial Black, Arial, sans-serif">Arial Black</option>
+            <option value="Impact, Haettenschweiler, sans-serif">Impact</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="Trebuchet MS, Arial, sans-serif">Trebuchet</option>
+            <option value="Courier New, monospace">Courier</option>
+          </select>
         </section>
 
         <section class="panel-section slider-row">
@@ -100,6 +87,7 @@
             <button class="toggle is-on" type="button" id="boldToggle" aria-pressed="true">Bold</button>
             <button class="toggle" type="button" id="italicToggle" aria-pressed="false">Italic</button>
             <button class="toggle" type="button" id="invertToggle" aria-pressed="false">Invert</button>
+            <button class="toggle" type="button" id="animateToggle" aria-pressed="false">Animate</button>
           </div>
         </section>
 
@@ -111,6 +99,11 @@
             <button type="button" data-preset="index">Index</button>
             <button type="button" data-preset="cut">Cut</button>
           </div>
+        </section>
+
+        <section class="panel-section actions">
+          <button class="secondary-button" type="button" id="randomize">Random</button>
+          <button class="export-button" type="button" id="exportPng">Export PNG</button>
         </section>
       </aside>
     </main>

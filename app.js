@@ -2,9 +2,9 @@ const canvas = document.getElementById("logoCanvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
 const controls = {
+  tool: document.getElementById("toolSelect"),
   text: document.getElementById("logoText"),
   fontFamily: document.getElementById("fontFamily"),
-  canvasRatio: document.getElementById("canvasRatio"),
   fontSize: document.getElementById("fontSize"),
   letterSpacing: document.getElementById("letterSpacing"),
   effectStrength: document.getElementById("effectStrength"),
@@ -12,7 +12,8 @@ const controls = {
   backgroundColor: document.getElementById("backgroundColor"),
   bold: document.getElementById("boldToggle"),
   italic: document.getElementById("italicToggle"),
-  invert: document.getElementById("invertToggle")
+  invert: document.getElementById("invertToggle"),
+  animate: document.getElementById("animateToggle")
 };
 
 const labels = {
@@ -21,94 +22,110 @@ const labels = {
   effectStrength: document.getElementById("effectStrengthValue")
 };
 
+const words = {
+  blur: ["OAK", "PINE", "BIRCH", "MAPLE", "CEDAR", "WILLOW", "REDWOOD"],
+  dither: ["Robin", "Sparrow", "Eagle", "Owl", "Parrot", "Swan", "Hawk"],
+  line: ["Zebra", "Tiger", "Okapi", "Bongo", "Quagga", "Serval"],
+  slice: ["Cheetah", "Falcon", "Gazelle", "Hare", "Ostrich", "Leopard"],
+  type: ["Flock", "Herd", "Pack", "Pride", "School", "Swarm", "Colony"]
+};
+
+const electricColors = [
+  "#000000",
+  "#ADD8E6",
+  "#FF96FF",
+  "#ffcf37",
+  "#B5651D",
+  "#ff781e",
+  "#b6b6ed",
+  "#00FF00",
+  "#FF3333"
+];
+
 const state = {
   effect: "type",
-  text: "AURA",
+  text: "Flock",
   fontFamily: "Arial Black, Arial, sans-serif",
-  ratio: "16:10",
-  fontSize: 330,
-  letterSpacing: -18,
+  fontSize: 400,
+  letterSpacing: 0,
   effectStrength: 56,
   textColor: "#ffffff",
-  backgroundColor: "#111111",
-  bold: true,
+  backgroundColor: "#000000",
+  bold: false,
   italic: false,
-  invert: false
+  invert: false,
+  animate: false,
+  time: 0,
+  centerY: 0
 };
 
 const presets = {
   signal: {
     effect: "line",
-    text: "SIGNAL",
-    fontFamily: "Trebuchet MS, Arial, sans-serif",
-    fontSize: 270,
-    letterSpacing: 16,
-    effectStrength: 62,
-    textColor: "#f9fafb",
-    backgroundColor: "#0f766e",
-    bold: true,
+    text: "Zebra",
+    fontFamily: "Arial Black, Arial, sans-serif",
+    fontSize: 410,
+    letterSpacing: 0,
+    effectStrength: 52,
+    backgroundColor: "#000000",
+    bold: false,
     italic: false,
     invert: false
   },
   glass: {
     effect: "blur",
-    text: "GLASS",
-    fontFamily: "Georgia, serif",
-    fontSize: 330,
-    letterSpacing: -28,
-    effectStrength: 72,
-    textColor: "#ffffff",
-    backgroundColor: "#161616",
+    text: "BIRCH",
+    fontFamily: "Arial Black, Arial, sans-serif",
+    fontSize: 410,
+    letterSpacing: -36,
+    effectStrength: 70,
+    backgroundColor: "#ff781e",
     bold: true,
     italic: true,
     invert: false
   },
   index: {
-    effect: "pixel",
-    text: "INDEX",
-    fontFamily: "Courier New, monospace",
-    fontSize: 315,
-    letterSpacing: -8,
-    effectStrength: 78,
-    textColor: "#f8fafc",
-    backgroundColor: "#1d4ed8",
-    bold: true,
+    effect: "dither",
+    text: "Swan",
+    fontFamily: "Arial Black, Arial, sans-serif",
+    fontSize: 430,
+    letterSpacing: 0,
+    effectStrength: 76,
+    backgroundColor: "#ADD8E6",
+    bold: false,
     italic: false,
     invert: false
   },
   cut: {
     effect: "slice",
-    text: "CUT",
-    fontFamily: "Impact, Haettenschweiler, sans-serif",
-    fontSize: 420,
-    letterSpacing: 8,
-    effectStrength: 64,
-    textColor: "#fff7ed",
-    backgroundColor: "#9a3412",
-    bold: false,
-    italic: false,
+    text: "Falcon",
+    fontFamily: "Arial Black, Arial, sans-serif",
+    fontSize: 395,
+    letterSpacing: 0,
+    effectStrength: 63,
+    backgroundColor: "#FF3333",
+    bold: true,
+    italic: true,
     invert: false
   }
 };
 
-const randomWords = ["AURA", "NOVA", "KIND", "MESH", "VOLT", "MONO", "ORBIT", "FIELD", "SHAPE"];
-const randomColors = ["#111111", "#0f766e", "#9a3412", "#1d4ed8", "#5b21b6", "#365314", "#7f1d1d"];
-
-let renderQueued = false;
+let animationId = 0;
 
 function queueRender() {
-  if (renderQueued) return;
-  renderQueued = true;
-  requestAnimationFrame(() => {
-    renderQueued = false;
-    render();
-  });
+  cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(render);
+}
+
+function updateToggle(button, value) {
+  button.classList.toggle("is-on", value);
+  button.setAttribute("aria-pressed", String(value));
 }
 
 function syncFromControls() {
+  state.effect = controls.tool.value;
   state.text = controls.text.value || "TYPE";
   state.fontFamily = controls.fontFamily.value;
-  state.ratio = controls.canvasRatio.value;
   state.fontSize = Number(controls.fontSize.value);
   state.letterSpacing = Number(controls.letterSpacing.value);
   state.effectStrength = Number(controls.effectStrength.value);
@@ -121,9 +138,9 @@ function syncFromControls() {
 }
 
 function syncToControls() {
+  controls.tool.value = state.effect;
   controls.text.value = state.text;
   controls.fontFamily.value = state.fontFamily;
-  controls.canvasRatio.value = state.ratio;
   controls.fontSize.value = state.fontSize;
   controls.letterSpacing.value = state.letterSpacing;
   controls.effectStrength.value = state.effectStrength;
@@ -132,40 +149,14 @@ function syncToControls() {
   updateToggle(controls.bold, state.bold);
   updateToggle(controls.italic, state.italic);
   updateToggle(controls.invert, state.invert);
-  document.querySelectorAll("[data-effect]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.effect === state.effect);
-  });
+  updateToggle(controls.animate, state.animate);
   syncFromControls();
 }
 
-function updateToggle(button, value) {
-  button.classList.toggle("is-on", value);
-  button.setAttribute("aria-pressed", String(value));
-}
-
-function getCanvasSize() {
-  const stage = canvas.parentElement.getBoundingClientRect();
-  const [rw, rh] = state.ratio.split(":").map(Number);
-  let width = stage.width;
-  let height = width * (rh / rw);
-  if (height > stage.height) {
-    height = stage.height;
-    width = height * (rw / rh);
-  }
-  return {
-    cssWidth: Math.max(320, width),
-    cssHeight: Math.max(240, height)
-  };
-}
-
 function resizeCanvas() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const { cssWidth, cssHeight } = getCanvasSize();
-  canvas.style.width = `${cssWidth}px`;
-  canvas.style.height = `${cssHeight}px`;
-  canvas.width = Math.round(cssWidth * dpr);
-  canvas.height = Math.round(cssHeight * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function fontString(size = state.fontSize) {
@@ -174,7 +165,7 @@ function fontString(size = state.fontSize) {
   return `${style} ${weight} ${size}px ${state.fontFamily}`;
 }
 
-function measureSpacedText(text, size = state.fontSize) {
+function measureSpacedText(text, size) {
   ctx.font = fontString(size);
   return [...text].reduce((sum, char, index) => {
     return sum + ctx.measureText(char).width + (index ? state.letterSpacing : 0);
@@ -183,12 +174,11 @@ function measureSpacedText(text, size = state.fontSize) {
 
 function fitFontSize(text, maxWidth, maxHeight) {
   let size = state.fontSize;
-  for (let i = 0; i < 12; i += 1) {
-    const width = measureSpacedText(text, size);
-    if (width <= maxWidth && size <= maxHeight) return size;
+  for (let i = 0; i < 32; i += 1) {
+    if (measureSpacedText(text, size) <= maxWidth && size <= maxHeight) return size;
     size *= 0.9;
   }
-  return Math.max(60, size);
+  return Math.max(48, size);
 }
 
 function drawSpacedText(targetCtx, text, x, y, fillStyle, size) {
@@ -212,120 +202,111 @@ function createTextMask(text, size) {
   mask.width = canvas.width;
   mask.height = canvas.height;
   const maskCtx = mask.getContext("2d", { willReadFrequently: true });
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  maskCtx.scale(dpr, dpr);
-  drawSpacedText(maskCtx, text, canvas.clientWidth / 2, canvas.clientHeight / 2, "#ffffff", size);
+  drawSpacedText(maskCtx, text, window.innerWidth / 2, state.centerY, "#ffffff", size);
   return mask;
 }
 
-function render() {
+function render(now = 0) {
+  state.time = now;
   resizeCanvas();
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  const text = state.text.toUpperCase();
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const text = state.text;
   const foreground = state.invert ? state.backgroundColor : state.textColor;
   const background = state.invert ? state.textColor : state.backgroundColor;
-  const size = fitFontSize(text, w * 0.84, h * 0.58);
+  state.centerY = w <= 768 ? h * 0.35 : h / 2;
+  const size = fitFontSize(text, w <= 768 ? w * 0.58 : w * 0.82, w <= 768 ? h * 0.24 : h * 0.58);
 
   ctx.clearRect(0, 0, w, h);
+  canvas.style.backgroundColor = background;
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, w, h);
 
-  if (state.effect === "type") {
-    drawSpacedText(ctx, text, w / 2, h / 2, foreground, size);
-  }
+  if (state.effect === "type") drawType(text, foreground, size, w, h);
+  if (state.effect === "blur") drawBlur(text, foreground, size, w, h);
+  if (state.effect === "dither") drawDither(text, foreground, size, w, h);
+  if (state.effect === "line") drawLine(text, foreground, size, w, h);
+  if (state.effect === "slice") drawSlice(text, foreground, size, w, h);
 
-  if (state.effect === "blur") {
-    drawBlur(text, foreground, size, w, h);
+  if (state.animate) {
+    animationId = requestAnimationFrame(render);
   }
-
-  if (state.effect === "pixel") {
-    drawPixel(text, foreground, size, w, h);
-  }
-
-  if (state.effect === "slice") {
-    drawSlice(text, foreground, size, w, h);
-  }
-
-  if (state.effect === "line") {
-    drawLine(text, foreground, size, w, h);
-  }
-
-  drawFrame(w, h);
 }
 
 function drawBlur(text, color, size, w, h) {
-  const blur = 2 + state.effectStrength * 0.18;
+  const blur = state.effectStrength > 55 ? 20 : 10;
   ctx.save();
-  ctx.filter = `blur(${blur}px) contrast(${1.4 + state.effectStrength / 80})`;
-  drawSpacedText(ctx, text, w / 2, h / 2, color, size);
+  ctx.filter = `blur(${blur}px) contrast(4)`;
+  drawSpacedText(ctx, text, w / 2, state.centerY, color, size);
   ctx.restore();
-  ctx.globalAlpha = 0.44;
-  drawSpacedText(ctx, text, w / 2, h / 2, color, size);
+  ctx.globalAlpha = 0.28;
+  drawSpacedText(ctx, text, w / 2, state.centerY, color, size);
   ctx.globalAlpha = 1;
 }
 
-function drawPixel(text, color, size, w, h) {
+function drawDither(text, color, size, w, h) {
   const mask = createTextMask(text, size);
-  const maskCtx = mask.getContext("2d");
-  const data = maskCtx.getImageData(0, 0, mask.width, mask.height).data;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const cell = Math.max(5, Math.round(22 - state.effectStrength * 0.16));
-  const gap = Math.max(1, Math.round(cell * 0.18));
+  const data = mask.getContext("2d").getImageData(0, 0, mask.width, mask.height).data;
+  const dpr = 1;
+  const cell = Math.max(4, Math.round(22 - state.effectStrength * 0.16));
+  const rounded = state.effectStrength > 48;
   ctx.fillStyle = color;
+
   for (let y = 0; y < h; y += cell) {
     for (let x = 0; x < w; x += cell) {
       const px = Math.floor((x + cell / 2) * dpr);
       const py = Math.floor((y + cell / 2) * dpr);
       const alpha = data[(py * mask.width + px) * 4 + 3];
-      if (alpha > 80) {
-        const jitter = (Math.sin(x * 0.07 + y * 0.05) + 1) * state.effectStrength * 0.012;
-        const block = Math.max(2, cell - gap + jitter);
+      const shouldDraw = state.invert ? alpha < 80 : alpha > 80;
+      if (!shouldDraw) continue;
+      const jitter = state.animate ? (Math.sin(state.time * 0.006 + x * 0.04 + y * 0.03) + 1) * 2 : 0;
+      const block = Math.max(2, cell * 0.82 + jitter);
+      if (rounded) {
+        ctx.beginPath();
+        ctx.arc(x + cell / 2, y + cell / 2, block / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
         ctx.fillRect(x, y, block, block);
       }
     }
   }
 }
 
-function drawSlice(text, color, size, w, h) {
-  const mask = createTextMask(text, size);
-  const sliceCount = 10 + Math.round(state.effectStrength / 7);
-  const sliceHeight = h / sliceCount;
-  ctx.save();
-  ctx.fillStyle = color;
-  for (let i = 0; i < sliceCount; i += 1) {
-    const y = i * sliceHeight;
-    const offset = Math.sin(i * 1.73) * state.effectStrength * 0.9;
-    ctx.drawImage(mask, 0, y * (mask.height / h), mask.width, sliceHeight * (mask.height / h), offset, y, w, sliceHeight + 1);
-  }
-  ctx.globalCompositeOperation = "source-in";
-  ctx.fillRect(0, 0, w, h);
-  ctx.restore();
-}
-
 function drawLine(text, color, size, w, h) {
   const mask = createTextMask(text, size);
-  const maskCtx = mask.getContext("2d");
-  const data = maskCtx.getImageData(0, 0, mask.width, mask.height).data;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const spacing = Math.max(6, Math.round(24 - state.effectStrength * 0.16));
+  const data = mask.getContext("2d").getImageData(0, 0, mask.width, mask.height).data;
+  const dpr = 1;
+  const lineSize = Math.max(2, Math.round(1 + state.effectStrength * 0.17));
+  const spacing = lineSize + 2;
+  const angle = ((state.animate ? state.time * 0.012 : state.effectStrength * 1.8) % 180) * Math.PI / 180;
+  const diagonal = Math.sqrt(w * w + h * h);
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  const pxv = -dy;
+  const pyv = dx;
+
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1.2, spacing * 0.16);
+  ctx.lineWidth = lineSize;
   ctx.lineCap = "round";
-  for (let y = spacing; y < h; y += spacing) {
-    ctx.beginPath();
+
+  for (let d = -diagonal; d < diagonal; d += spacing) {
     let drawing = false;
-    for (let x = 0; x < w; x += 4) {
-      const wave = Math.sin(x * 0.02 + y * 0.04) * state.effectStrength * 0.05;
-      const px = Math.floor(x * dpr);
-      const py = Math.floor(y * dpr);
-      const alpha = data[(py * mask.width + px) * 4 + 3];
-      if (alpha > 80) {
+    ctx.beginPath();
+    for (let step = -diagonal; step < diagonal; step += 3) {
+      const x = w / 2 + d * pxv + step * dx;
+      const y = h / 2 + d * pyv + step * dy;
+      if (x < 0 || y < 0 || x >= w || y >= h) continue;
+      const mx = Math.floor(x * dpr);
+      const my = Math.floor(y * dpr);
+      const alpha = data[(my * mask.width + mx) * 4 + 3];
+      const shouldDraw = state.invert ? alpha < 80 : alpha > 80;
+      if (shouldDraw) {
         if (!drawing) {
-          ctx.moveTo(x, y + wave);
+          ctx.moveTo(x, y);
           drawing = true;
         } else {
-          ctx.lineTo(x, y + wave);
+          ctx.lineTo(x, y);
         }
       } else if (drawing) {
         ctx.stroke();
@@ -337,57 +318,103 @@ function drawLine(text, color, size, w, h) {
   }
 }
 
-function drawFrame(w, h) {
+function drawSlice(text, color, size, w, h) {
+  const count = 3 + Math.round(state.effectStrength * 0.27);
+  const sliceH = h / count;
+  const maxOffset = state.animate
+    ? Math.sin(state.time * 0.006) * 50
+    : (state.effectStrength - 50);
+
+  for (let i = 0; i < count; i += 1) {
+    const y = i * sliceH;
+    const offset = (i - (count - 1) / 2) * maxOffset * 0.18;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, y, w, sliceH + 1);
+    ctx.clip();
+    drawSpacedText(ctx, text, w / 2 + offset, state.centerY, color, size);
+    ctx.restore();
+  }
+}
+
+function drawType(text, color, size, w, h) {
+  const mask = createTextMask(text, size);
+  const data = mask.getContext("2d").getImageData(0, 0, mask.width, mask.height).data;
+  const dpr = 1;
+  const cell = Math.max(9, Math.round(24 - state.effectStrength * 0.12));
+  const alphabet = text.toUpperCase().replace(/[^A-Z0-9]/g, "") || "TYPE";
   ctx.save();
-  ctx.strokeStyle = "rgba(255,255,255,0.24)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(12, 12, w - 24, h - 24);
+  ctx.font = `700 ${Math.max(10, cell * 0.9)}px Helvetica, Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+
+  for (let y = 0; y < h; y += cell) {
+    for (let x = 0; x < w; x += cell) {
+      const mx = Math.floor((x + cell / 2) * dpr);
+      const my = Math.floor((y + cell / 2) * dpr);
+      const alpha = data[(my * mask.width + mx) * 4 + 3];
+      const shouldDraw = state.invert ? alpha < 80 : alpha > 80;
+      if (!shouldDraw) continue;
+      const seed = Math.abs(Math.sin(x * 12.9898 + y * 78.233 + (state.animate ? state.time * 0.01 : 0)));
+      const letter = alphabet[Math.floor(seed * alphabet.length) % alphabet.length];
+      ctx.fillText(letter, x + cell / 2, y + cell / 2);
+    }
+  }
   ctx.restore();
 }
 
-function setEffect(effect) {
-  state.effect = effect;
-  document.querySelectorAll("[data-effect]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.effect === effect);
-  });
-  queueRender();
+function hexToRgb(hex) {
+  const normalized = hex.replace("#", "");
+  const value = Number.parseInt(normalized.length === 3
+    ? normalized.split("").map((char) => char + char).join("")
+    : normalized, 16);
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255
+  };
+}
+
+function randomFrom(list) {
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 function randomize() {
-  state.text = randomWords[Math.floor(Math.random() * randomWords.length)];
-  state.effect = ["type", "blur", "pixel", "slice", "line"][Math.floor(Math.random() * 5)];
-  state.backgroundColor = randomColors[Math.floor(Math.random() * randomColors.length)];
-  state.textColor = Math.random() > 0.2 ? "#ffffff" : "#fef3c7";
-  state.fontSize = 230 + Math.round(Math.random() * 210);
-  state.letterSpacing = -42 + Math.round(Math.random() * 96);
-  state.effectStrength = 32 + Math.round(Math.random() * 62);
-  state.bold = Math.random() > 0.25;
-  state.italic = Math.random() > 0.68;
+  const effect = randomFrom(["blur", "dither", "line", "slice", "type"]);
+  state.effect = effect;
+  state.text = randomFrom(words[effect]);
+  state.backgroundColor = randomFrom(electricColors);
+  state.textColor = "#ffffff";
+  state.fontSize = 320 + Math.round(Math.random() * 170);
+  state.letterSpacing = effect === "blur" ? -40 + Math.round(Math.random() * 38) : 0;
+  state.effectStrength = 35 + Math.round(Math.random() * 60);
+  state.bold = Math.random() > 0.5;
+  state.italic = Math.random() > 0.5;
   state.invert = false;
   syncToControls();
 }
 
 function exportPng() {
+  const wasAnimating = state.animate;
+  state.animate = false;
   render();
+  state.animate = wasAnimating;
   const link = document.createElement("a");
-  link.download = `${state.text.toLowerCase() || "logo"}-${state.effect}.png`;
+  link.download = `${state.text.toLowerCase() || "type"}-${state.effect}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
+  if (state.animate) queueRender();
 }
 
-document.querySelectorAll("[data-effect]").forEach((button) => {
-  button.addEventListener("click", () => setEffect(button.dataset.effect));
-});
-
-document.querySelectorAll("[data-preset]").forEach((button) => {
-  button.addEventListener("click", () => {
-    Object.assign(state, presets[button.dataset.preset]);
-    syncToControls();
-  });
+controls.tool.addEventListener("change", () => {
+  state.effect = controls.tool.value;
+  state.text = randomFrom(words[state.effect]);
+  syncToControls();
 });
 
 Object.values(controls).forEach((control) => {
-  if (control.tagName !== "BUTTON") {
+  if (control.tagName !== "BUTTON" && control !== controls.tool) {
     control.addEventListener("input", syncFromControls);
     control.addEventListener("change", syncFromControls);
   }
@@ -411,8 +438,22 @@ controls.invert.addEventListener("click", () => {
   queueRender();
 });
 
+controls.animate.addEventListener("click", () => {
+  state.animate = !state.animate;
+  updateToggle(controls.animate, state.animate);
+  queueRender();
+});
+
+document.querySelectorAll("[data-preset]").forEach((button) => {
+  button.addEventListener("click", () => {
+    Object.assign(state, presets[button.dataset.preset]);
+    syncToControls();
+  });
+});
+
 document.getElementById("randomize").addEventListener("click", randomize);
 document.getElementById("exportPng").addEventListener("click", exportPng);
 window.addEventListener("resize", queueRender);
 
-syncToControls();
+randomize();
+render();
