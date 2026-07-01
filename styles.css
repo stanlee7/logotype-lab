@@ -1,0 +1,290 @@
+:root {
+  --bg: #f4f1ea;
+  --ink: #151515;
+  --muted: #6f6a61;
+  --panel: #fbfaf7;
+  --line: #d9d3c8;
+  --button: #ece5d8;
+  --button-hover: #ded5c5;
+  --accent: #0f766e;
+  --accent-2: #c2410c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.topbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  pointer-events: none;
+}
+
+.brand,
+.tab,
+.icon-button,
+.export-button,
+.toggle,
+.preset-grid button {
+  pointer-events: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(251, 250, 247, 0.9);
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.brand {
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.tool-tabs {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tool-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  min-width: 64px;
+  padding: 8px 12px;
+  color: var(--muted);
+}
+
+.tab.is-active {
+  color: #ffffff;
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.top-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: end;
+}
+
+.icon-button {
+  width: 38px;
+  height: 38px;
+  font-weight: 800;
+}
+
+.export-button {
+  height: 38px;
+  padding: 0 14px;
+  color: #ffffff;
+  border-color: var(--accent-2);
+  background: var(--accent-2);
+  font-weight: 700;
+}
+
+.brand:hover,
+.tab:hover,
+.icon-button:hover,
+.toggle:hover,
+.preset-grid button:hover {
+  background: var(--button-hover);
+}
+
+.export-button:hover {
+  background: #9a3412;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 324px;
+  min-height: 100vh;
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 100vh;
+  padding: 86px 24px 24px;
+}
+
+#logoCanvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.panel {
+  z-index: 9;
+  align-self: stretch;
+  width: 324px;
+  padding: 82px 16px 18px;
+  border-left: 1px solid var(--line);
+  background: rgba(251, 250, 247, 0.94);
+  overflow-y: auto;
+}
+
+.panel-section {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-section label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--ink);
+  padding: 0 10px;
+}
+
+input[type="color"] {
+  width: 100%;
+  height: 38px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.toggles,
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.preset-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.toggle,
+.preset-grid button {
+  height: 34px;
+  background: var(--button);
+}
+
+.toggle.is-on {
+  color: #ffffff;
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+@media (max-width: 860px) {
+  body {
+    overflow: auto;
+  }
+
+  .topbar {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+
+  .brand {
+    grid-column: 1;
+    width: max-content;
+  }
+
+  .tool-tabs {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-right: 0;
+  }
+
+  .top-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .stage {
+    height: 58vh;
+    min-height: 430px;
+    padding: 106px 12px 14px;
+  }
+
+  .panel {
+    width: auto;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    left: 10px;
+    right: 10px;
+    gap: 10px;
+  }
+
+  .tab {
+    min-width: 58px;
+    padding: 8px 10px;
+  }
+
+  .export-button {
+    width: 94px;
+    padding: 0 8px;
+  }
+}

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LogoType Lab</title>
+    <meta name="description" content="A browser-based typography logo tool for shaping blur, pixel, slice, line, and variable type effects.">
+    <meta property="og:title" content="LogoType Lab">
+    <meta property="og:description" content="Design experimental typography logos directly in the browser.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="LogoType Lab">
+    <meta name="twitter:description" content="Design experimental typography logos directly in the browser.">
+    <meta name="twitter:image" content="/og-image.png">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="LogoType Lab home">LogoType</a>
+      <nav class="tool-tabs" aria-label="Logo effects">
+        <button class="tab is-active" type="button" data-effect="type">Type</button>
+        <button class="tab" type="button" data-effect="blur">Blur</button>
+        <button class="tab" type="button" data-effect="pixel">Pixel</button>
+        <button class="tab" type="button" data-effect="slice">Slice</button>
+        <button class="tab" type="button" data-effect="line">Line</button>
+      </nav>
+      <div class="top-actions">
+        <button class="icon-button" type="button" id="randomize" aria-label="Randomize preset" title="Randomize preset">R</button>
+        <button class="export-button" type="button" id="exportPng">Export PNG</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" aria-label="Logo preview">
+        <canvas id="logoCanvas" width="1600" height="1000"></canvas>
+      </section>
+
+      <aside class="panel" aria-label="Logo controls">
+        <section class="panel-section">
+          <label for="logoText">Text</label>
+          <input id="logoText" type="text" value="AURA" autocomplete="off" maxlength="18">
+        </section>
+
+        <section class="panel-section two-col">
+          <div>
+            <label for="fontFamily">Font</label>
+            <select id="fontFamily">
+              <option value="Arial Black, Arial, sans-serif">Arial Black</option>
+              <option value="Impact, Haettenschweiler, sans-serif">Impact</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="Trebuchet MS, Arial, sans-serif">Trebuchet</option>
+              <option value="Courier New, monospace">Courier</option>
+            </select>
+          </div>
+          <div>
+            <label for="canvasRatio">Frame</label>
+            <select id="canvasRatio">
+              <option value="16:10">Wide</option>
+              <option value="1:1">Square</option>
+              <option value="4:5">Poster</option>
+              <option value="2:1">Banner</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="panel-section slider-row">
+          <label for="fontSize">Size <span id="fontSizeValue">330</span></label>
+          <input id="fontSize" type="range" min="110" max="520" value="330">
+        </section>
+
+        <section class="panel-section slider-row">
+          <label for="letterSpacing">Spacing <span id="letterSpacingValue">-18</span></label>
+          <input id="letterSpacing" type="range" min="-60" max="140" value="-18">
+        </section>
+
+        <section class="panel-section slider-row">
+          <label for="effectStrength">Effect <span id="effectStrengthValue">56</span></label>
+          <input id="effectStrength" type="range" min="0" max="100" value="56">
+        </section>
+
+        <section class="panel-section two-col">
+          <div>
+            <label for="textColor">Text</label>
+            <input id="textColor" type="color" value="#ffffff">
+          </div>
+          <div>
+            <label for="backgroundColor">Background</label>
+            <input id="backgroundColor" type="color" value="#111111">
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <label>Style</label>
+          <div class="toggles">
+            <button class="toggle is-on" type="button" id="boldToggle" aria-pressed="true">Bold</button>
+            <button class="toggle" type="button" id="italicToggle" aria-pressed="false">Italic</button>
+            <button class="toggle" type="button" id="invertToggle" aria-pressed="false">Invert</button>
+          </div>
+        </section>
+
+        <section class="panel-section presets">
+          <label>Presets</label>
+          <div class="preset-grid">
+            <button type="button" data-preset="signal">Signal</button>
+            <button type="button" data-preset="glass">Glass</button>
+            <button type="button" data-preset="index">Index</button>
+            <button type="button" data-preset="cut">Cut</button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

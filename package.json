@@ -1,0 +1,9 @@
+{
+  "name": "logotype-lab",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "check": "node --check app.js"
+  }
+}
